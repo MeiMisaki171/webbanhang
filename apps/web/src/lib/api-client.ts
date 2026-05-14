@@ -1,6 +1,7 @@
 import type {
   CategoryDetail,
   CategorySummary,
+  OrderView,
   PaginatedResponse,
   ProductCard,
   ProductDetail,
@@ -91,4 +92,8 @@ export async function fetchBrands(category?: string): Promise<string[]> {
     `/products/brands/list${buildQuery({ category })}`,
     { next: { revalidate: 120 } },
   );
+}
+
+export async function fetchOrder(code: string): Promise<OrderView> {
+  return fetchJson<OrderView>(`/orders/${code}`, { cache: "no-store" });
 }

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AuthProvider } from "@/providers/auth-provider";
 import { SiteHeader } from "@/components/site-header";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,8 +16,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Điện Gia Dụng Pro",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  title: {
+    default: "Điện Gia Dụng Pro",
+    template: "%s | Điện Gia Dụng Pro",
+  },
   description: "Cửa hàng đồ gia dụng, điện và điện máy trực tuyến tại Việt Nam.",
+  openGraph: {
+    type: "website",
+    locale: "vi_VN",
+    siteName: "Điện Gia Dụng Pro",
+    title: "Điện Gia Dụng Pro",
+    description: "Cửa hàng đồ gia dụng, điện và điện máy trực tuyến tại Việt Nam.",
+  },
 };
 
 export default function RootLayout({
@@ -29,8 +42,20 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-slate-50 text-slate-900">
-        <SiteHeader />
-        <main className="flex-1">{children}</main>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-sky-700 focus:px-4 focus:py-2 focus:text-white"
+        >
+          Bỏ qua đến nội dung chính
+        </a>
+        <ToastProvider>
+          <AuthProvider>
+            <SiteHeader />
+            <main id="main-content" className="flex-1">
+              {children}
+            </main>
+          </AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );

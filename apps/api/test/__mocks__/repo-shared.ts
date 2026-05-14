@@ -29,6 +29,17 @@ export function formatVnd(amount: number): string {
 
 export const API_PREFIX = "/api/v1";
 
+export const AUTH_ACCESS_COOKIE = "dgp_access_token";
+export const AUTH_REFRESH_COOKIE = "dgp_refresh_token";
+
+export function normalizePhone(phone: string): string {
+  return phone.trim();
+}
+
+export function isEmailIdentifier(identifier: string): boolean {
+  return identifier.includes("@");
+}
+
 export function buildPaginationMeta(
   page: number,
   pageSize: number,
