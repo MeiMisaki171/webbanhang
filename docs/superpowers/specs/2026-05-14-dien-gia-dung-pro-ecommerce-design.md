@@ -1,7 +1,7 @@
 # Điện Gia Dụng Pro — MVP E-commerce Design
 
 **Date:** 2026-05-14  
-**Status:** Approved; bổ sung 2026-05-14 — storefront auth/state + đăng nhập email/SĐT  
+**Status:** Approved; bổ sung 2026-05-14 — storefront auth/state, email/SĐT login, **storefront shell (sidebar, footer, search trên home)**  
 **Scope:** MVP storefront + admin tối thiểu trên PostgreSQL thật, không mock luồng catalog/cart/order/auth.
 
 ## 1. Goals & Non-Goals
@@ -324,11 +324,11 @@ Prefix ví dụ: `/api/v1`. Response JSON thống nhất; lỗi có `code`, `mes
 ## 9. Frontend (apps/web)
 
 - Next.js App Router, TypeScript, Tailwind; mobile-first; palette xanh/trắng/xám.
-- Header: logo, search, mini cart, account.
-- Home: hero, danh mục nổi bật, sản phẩm nổi bật/khuyến mãi.
+- **Storefront shell** (§9.2): header + sidebar danh mục + `main` + footer; **không** áp dụng `/admin/*`.
+- Home: hero + sản phẩm nổi bật/khuyến mãi khi không có `?q=`; kết quả tìm kiếm trên cùng trang khi có `?q=`.
 - Skeleton loading, empty state, toast lỗi/thành công.
-- SEO: metadata, slug sản phẩm; Open Graph cơ bản trên PDP.
-- A11y: label form, alt ảnh, keyboard focus.
+- SEO: metadata, slug sản phẩm; Open Graph cơ bản trên PDP; metadata tìm kiếm theo `?q=` trên `/`.
+- A11y: label form, alt ảnh, keyboard focus; sidebar drawer đóng bằng Escape và focus trap cơ bản.
 
 ### 9.1 Storefront auth state & cart sync (đã chốt)
 
@@ -340,6 +340,22 @@ Prefix ví dụ: `/api/v1`. Response JSON thống nhất; lỗi có `code`, `mes
 - **Mutation:** login/register/logout và thêm/sửa/xóa giỏ cập nhật store; merge guest cart sau login (API); multi-tab logout qua `BroadcastChannel` + clear persist user.
 - **Guards (client):** `ProtectedRoute`, `GuestRoute`, `RoleRoute`; redirect sau login; loading fallback khi `status === loading`.
 - **Hooks:** `useAuthUser`, `useIsAuthenticated`, `useAuthStatus`, `useAuthActions` (và selectors typed, shallow compare).
+
+### 9.2 Storefront shell — sidebar, footer, search trên home (đã chốt)
+
+**Layout:** route group `(storefront)` (hoặc tương đương) bọc mọi trang ngoài `/admin/*`: `SiteHeader` → hàng `CategorySidebar` + `main` → `SiteFooter`. `body`/`shell` dùng `flex` + `min-h-screen` để footer luôn nằm dưới cùng viewport khi nội dung ngắn; **không** dùng `position: fixed` che nội dung.
+
+**Header:** logo, `SearchForm` (gợi ý debounce giữ nguyên), mini cart, account; **không** link menu “Tìm kiếm”. Mobile: **icon danh mục** bật/tắt sidebar (drawer/overlay); desktop: sidebar trái ~240px luôn hiện.
+
+**Sidebar danh mục:** `GET /categories` một lần ở layout storefront; chỉ **danh mục gốc** (`parentId === null`), sort `sortOrder`, link `/danh-muc/[slug]`; highlight item theo pathname. **Không** cây con trong sidebar.
+
+**Tìm kiếm:** gỡ route `/tim-kiem` khỏi UX chính; `SearchForm` submit `GET /?q=...`. Khi `q` có giá trị, vùng `main` trang chủ hiển thị kết quả + `ProductFilters` + `Pagination` (tái dùng logic search API hiện tại); ẩn hero và (nếu trùng sidebar) **bỏ** section “Danh mục nổi bật”. Redirect 301/308 từ `/tim-kiem` → `/?q=...` (giữ query `q`, `page`, filter). API `GET /search` và suggest **không đổi**.
+
+**Footer:** full-width dưới shell; cột thương hiệu + hotline/email; cột link (chính sách, hỗ trợ, về chúng tôi — `href` placeholder `#` hoặc disabled đến khi có trang); dòng phương thức thanh toán **COD** + **chuyển khoản**; hàng icon/link mạng xã hội placeholder. Admin **không** dùng footer storefront.
+
+**Lỗi / edge:** categories API lỗi → sidebar empty state + toast tùy trang; search `q` rỗng sau trim → home mặc định; drawer mở khóa scroll body (hoặc overlay click đóng).
+
+**Kiểm thử / smoke:** desktop sidebar + footer trên cart/checkout/login; mobile icon mở/đóng drawer; submit search → `/?q=` có kết quả; `/tim-kiem?q=...` redirect về `/`; admin không có sidebar/footer storefront.
 
 ## 10. Admin (apps/web + API)
 
@@ -392,7 +408,7 @@ Không commit file `.env` thật.
 ### Smoke checklist (manual)
 
 1. Khách duyệt danh mục → chi tiết → thêm giỏ  
-2. Search ra đúng sản phẩm  
+2. Search từ header → kết quả trên `/` với `?q=` (không còn `/tim-kiem` trong luồng chính)  
 3. Checkout COD tạo order trong DB  
 4. Login thấy lịch sử đơn  
 5. Admin sửa tồn kho/giá phản ánh storefront  

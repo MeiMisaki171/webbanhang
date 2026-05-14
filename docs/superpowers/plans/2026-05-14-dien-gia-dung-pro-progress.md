@@ -104,7 +104,7 @@
 
 | 1 | Duyệt danh mục → chi tiết → thêm giỏ | 2–3 | Đạt (API + UI) |
 
-| 2 | Search đúng sản phẩm | 2 | Đạt |
+| 2 | Search từ header → kết quả trên `/?q=` | 2 / 6 bổ sung | Chưa (đang `/tim-kiem`) |
 
 | 3 | Checkout COD tạo order trong DB | 3 | Đạt (E2E API / unit transaction) |
 
@@ -118,6 +118,7 @@
 
 ## Chưa làm (backlog gắn phase)
 
+- **Phase 6 bổ sung (Task 6–8):** sidebar danh mục, footer storefront, search trên home, gỡ `/tim-kiem`, drawer mobile icon danh mục.
 - **Phase 4 bổ sung (Task 6–11):** refresh/`rememberMe`, đăng nhập email hoặc SĐT, Zustand auth + cart dedupe, guard client, smoke khách không gọi `GET /auth/me` khi storage không có user.
 - **Phase 6 manual:** smoke #6 trên URL production; webhook payment provider thật (stub trong spec).
 
