@@ -1,7 +1,7 @@
 # Điện Gia Dụng Pro — MVP E-commerce Design
 
 **Date:** 2026-05-14  
-**Status:** Approved (brainstorming)  
+**Status:** Approved; bổ sung 2026-05-14 — storefront auth/state + đăng nhập email/SĐT  
 **Scope:** MVP storefront + admin tối thiểu trên PostgreSQL thật, không mock luồng catalog/cart/order/auth.
 
 ## 1. Goals & Non-Goals
@@ -127,8 +127,10 @@ erDiagram
 
   User {
     uuid id PK
-    string email UK
+    string email UK nullable
+    string phone UK nullable
     string passwordHash
+    string fullName nullable
     enum role
     datetime createdAt
     datetime updatedAt
@@ -266,7 +268,7 @@ Prefix ví dụ: `/api/v1`. Response JSON thống nhất; lỗi có `code`, `mes
 
 | Domain | Endpoints (representative) |
 |--------|---------------------------|
-| Auth | `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `GET /auth/me` |
+| Auth | `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `POST /auth/refresh`, `GET /auth/me` |
 | Catalog | `GET /categories`, `GET /categories/:slug`, `GET /products`, `GET /products/:slug` |
 | Search | `GET /search?q=&page=&sort=`, `GET /search/suggest?q=` (debounce client) |
 | Cart | `GET /cart`, `POST /cart/items`, `PATCH /cart/items/:id`, `DELETE /cart/items/:id` |
@@ -281,10 +283,29 @@ Prefix ví dụ: `/api/v1`. Response JSON thống nhất; lỗi có `code`, `mes
 
 ## 6. Authentication & Authorization
 
-- NestJS phát hành JWT (access ngắn + refresh dài) trong **httpOnly, Secure** cookies khi phù hợp; hoặc Bearer cho client không cookie — implementation plan chọn một cách nhất quán với CORS Vercel ↔ VPS.
-- Mật khẩu: bcrypt hoặc argon2; không log secret.
-- Route bảo vệ web: `/account`, `/orders`, `/admin/*`; API guard role `ADMIN` cho `/admin/**`.
+### Session & token (đã chốt)
+
+- NestJS phát hành JWT access (ngắn) + refresh (dài) trong **httpOnly, Secure, SameSite=Lax** cookies (`dgp_access_token`, `dgp_refresh_token`). Web gọi REST bằng `fetch` + `credentials: "include"`.
+- **Không** lưu JWT trong `localStorage` / `sessionStorage`. Zustand `persist` chỉ profile và metadata phiên phía client (xem §9.1).
+- `POST /auth/refresh` đọc refresh cookie, phát access mới; có thể rotate refresh cookie. `api-client` bọc `fetch`: gặp 401 → refresh một lần (dedupe) → retry request; refresh thất bại → `expired`, clear profile persist, logout cookie.
+- `rememberMe` trên login điều chỉnh `Max-Age` refresh cookie (ví dụ session ~7 ngày vs nhớ ~30 ngày). Cờ `rememberMe` có thể persist trong Zustand cho UI; không thay cookie access bằng storage trình duyệt.
+
+### Identity — email và/hoặc SĐT (đã chốt)
+
+- **Đăng ký:** bắt buộc mật khẩu; **ít nhất một** trong email hoặc SĐT (chỉ email, chỉ SĐT, hoặc cả hai). `fullName` tùy chọn.
+- **Đăng nhập:** một trường `identifier` + mật khẩu; server phân biệt email hay SĐT (chuẩn hóa SĐT VN `^0\d{9,10}$` như checkout).
+- **User DB:** `email` và `phone` nullable, unique khi có giá trị; ràng buộc “ít nhất một identifier” ở service + Zod. Admin seed giữ email; khách có thể chỉ SĐT.
+- **`AuthUser`:** `id`, `email | null`, `phone | null`, `fullName | null`, `role`, `createdAt`.
+
+### Authorization
+
+- Mật khẩu: bcrypt; không log secret.
+- Route bảo vệ **client** (không Next.js middleware auth): `/account`, `/orders` qua guard + bootstrap hydration-safe; API guard role `ADMIN` cho `/admin/**`.
 - Seed một user `ADMIN` và tài khoản demo `CUSTOMER` (document trong README).
+
+### Ngoài phạm vi MVP auth
+
+- OTP/SMS, xác minh SĐT, RBAC chi tiết, quản lý thiết bị/phiên, audit/analytics, timeout không hoạt động + modal hết phiên, wishlist/recently viewed persist client.
 
 ## 7. Payments
 
@@ -308,6 +329,17 @@ Prefix ví dụ: `/api/v1`. Response JSON thống nhất; lỗi có `code`, `mes
 - Skeleton loading, empty state, toast lỗi/thành công.
 - SEO: metadata, slug sản phẩm; Open Graph cơ bản trên PDP.
 - A11y: label form, alt ảnh, keyboard focus.
+
+### 9.1 Storefront auth state & cart sync (đã chốt)
+
+- **Auth store** (`auth.store.ts`, selectors, persist, types) tách khỏi **cart store**; `AuthProvider` bootstrap session, cart bootstrap riêng (dedupe in-flight).
+- Zustand: `persist` + `subscribeWithSelector` (+ `immer`/`devtools` khi dev). **Persist** (`localStorage`, key ví dụ `dgp-auth`): `user`, `rememberMe`, `lastLoginAt`, `sessionId` (UUID client). **Không persist:** token, `isLoading`, status tạm.
+- **Status:** `idle` | `loading` | `authenticated` | `unauthenticated` | `expired`. `isAuthenticated` khi `authenticated` và có `user`.
+- **Bootstrap:** sau rehydrate, **không** gọi `GET /auth/me` nếu storage không có `user` (khách); có `user` persist thì reconcile `me` (và refresh nếu 401). `GET /cart` một lần mỗi bootstrap.
+- **Header:** một instance `MiniCartButton` / `AccountMenu` (responsive CSS); subscribe store, không `useEffect` fetch riêng.
+- **Mutation:** login/register/logout và thêm/sửa/xóa giỏ cập nhật store; merge guest cart sau login (API); multi-tab logout qua `BroadcastChannel` + clear persist user.
+- **Guards (client):** `ProtectedRoute`, `GuestRoute`, `RoleRoute`; redirect sau login; loading fallback khi `status === loading`.
+- **Hooks:** `useAuthUser`, `useIsAuthenticated`, `useAuthStatus`, `useAuthActions` (và selectors typed, shallow compare).
 
 ## 10. Admin (apps/web + API)
 
@@ -353,7 +385,7 @@ Không commit file `.env` thật.
 | **1** | Turborepo, Prisma schema/migrate/seed, Nest skeleton + health, Next shell, `.env.example`, scripts | Seed trên Postgres thật; `build` pass |
 | **2** | Catalog, search, PDP, filter/sort, URL query, suggest debounce nếu kịp | Duyệt/lọc/tìm qua API + DB |
 | **3** | Cart, checkout, order transaction, stock decrement, COD + bank transfer UI | E2E tạo đơn trên DB |
-| **4** | Auth JWT, protected routes, guest cart merge | Login + order history |
+| **4** | Auth JWT cookie, refresh/remember me, đăng nhập email/SĐT, protected routes (client), guest cart merge, Zustand auth + cart dedupe | Login identifier; khách không gọi `me`; một request `cart` trên home |
 | **5** | Admin CRUD, S3 upload, orders/payments, dashboard | Admin đổi giá/tồn → storefront |
 | **6** | UI polish, SEO, tests giỏ/đơn/kho, deploy production, smoke checklist | Public URL E2E trên DB production |
 
