@@ -32,7 +32,7 @@ export function SearchForm() {
   }, [query]);
 
   return (
-    <form action="/tim-kiem" method="get" className="relative w-full max-w-xl">
+    <form action="/" method="get" className="relative w-full max-w-xl">
       <label htmlFor={inputId} className="sr-only">
         Tìm kiếm sản phẩm
       </label>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { AddToCartButton } from "@/components/add-to-cart-button";
 import { Price } from "@/components/price";
 import { ProductGrid } from "@/components/product-grid";
 import { fetchProduct } from "@/lib/api-client";
@@ -74,6 +75,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {product.stock > 0 ? `Còn ${product.stock} sản phẩm` : "Hết hàng"}
           </p>
           <p className="text-base leading-7 text-slate-700">{product.shortDescription}</p>
+          <AddToCartButton productId={product.id} stock={product.stock} />
         </div>
       </div>
 

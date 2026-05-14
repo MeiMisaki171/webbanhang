@@ -19,8 +19,14 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   try {
     const category = await fetchCategory(slug);
     return {
-      title: `${category.name} | Điện Gia Dụng Pro`,
+      title: category.name,
       description: `Mua sắm ${category.name} chính hãng tại Điện Gia Dụng Pro.`,
+      openGraph: {
+        title: `${category.name} | Điện Gia Dụng Pro`,
+        description: `Mua sắm ${category.name} chính hãng tại Điện Gia Dụng Pro.`,
+        type: "website",
+        locale: "vi_VN",
+      },
     };
   } catch {
     return { title: "Danh mục | Điện Gia Dụng Pro" };
@@ -70,19 +76,21 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         ) : null}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
-        <Suspense fallback={<div className="h-40 rounded-xl bg-slate-100" />}>
+      <div className="space-y-6">
+        <Suspense
+          fallback={
+            <div className="h-28 animate-pulse rounded-xl border border-slate-200 bg-white" />
+          }
+        >
           <ProductFilters brands={brands} basePath={basePath} />
         </Suspense>
-        <div className="space-y-6">
-          <ProductGrid products={products.data} />
-          <Pagination
-            page={products.meta.page}
-            totalPages={products.meta.totalPages}
-            basePath={basePath}
-            searchParams={query}
-          />
-        </div>
+        <ProductGrid products={products.data} />
+        <Pagination
+          page={products.meta.page}
+          totalPages={products.meta.totalPages}
+          basePath={basePath}
+          searchParams={query}
+        />
       </div>
     </div>
   );
