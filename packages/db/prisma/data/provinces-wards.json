@@ -1,0 +1,18 @@
+{
+  "provinces": [
+    { "code": "01", "name": "Thành phố Hà Nội" },
+    { "code": "79", "name": "Thành phố Hồ Chí Minh" },
+    { "code": "48", "name": "Thành phố Đà Nẵng" }
+  ],
+  "wards": [
+    { "code": "01001", "provinceCode": "01", "name": "Phường Phúc Xá" },
+    { "code": "01002", "provinceCode": "01", "name": "Phường Trúc Bạch" },
+    { "code": "01003", "provinceCode": "01", "name": "Phường Vĩnh Phúc" },
+    { "code": "79001", "provinceCode": "79", "name": "Phường Tân Định" },
+    { "code": "79002", "provinceCode": "79", "name": "Phường Đa Kao" },
+    { "code": "79003", "provinceCode": "79", "name": "Phường Bến Nghé" },
+    { "code": "48001", "provinceCode": "48", "name": "Phường Thạch Thang" },
+    { "code": "48002", "provinceCode": "48", "name": "Phường Hải Châu I" },
+    { "code": "48003", "provinceCode": "48", "name": "Phường Hải Châu II" }
+  ]
+}
