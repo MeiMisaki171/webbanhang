@@ -16,6 +16,9 @@
     "lint": "tsc -p tsconfig.json --noEmit",
     "test": "node --import tsx --test src/**/*.test.ts"
   },
+  "dependencies": {
+    "zod": "^3.25.42"
+  },
   "devDependencies": {
     "@types/node": "^22.15.21",
     "tsx": "^4.19.4",

@@ -29,4 +29,15 @@ export function formatVnd(amount: number): string {
 
 export const API_PREFIX = "/api/v1";
 
-export * from "./catalog.js";
+export function buildPaginationMeta(
+  page: number,
+  pageSize: number,
+  total: number,
+) {
+  return {
+    page,
+    pageSize,
+    total,
+    totalPages: total === 0 ? 0 : Math.ceil(total / pageSize),
+  };
+}

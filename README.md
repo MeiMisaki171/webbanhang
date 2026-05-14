@@ -75,6 +75,9 @@ pnpm dev
 
 ## Phase hiện tại
 
-Phase 1: monorepo, Prisma schema/seed, NestJS health, Next.js shell.
+Phase 2: catalog, search, trang chi tiết sản phẩm, lọc/sắp xếp qua query URL.
+
+- API: `/api/v1/categories`, `/api/v1/products`, `/api/v1/search`
+- Web: `/danh-muc/[slug]`, `/san-pham/[slug]`, `/tim-kiem`
 
 Tài liệu thiết kế: `docs/superpowers/specs/2026-05-14-dien-gia-dung-pro-ecommerce-design.md`

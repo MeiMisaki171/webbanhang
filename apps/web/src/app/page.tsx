@@ -1,20 +1,18 @@
-import { fetchHealth } from "@/lib/api-client";
+import { CategoryGrid } from "@/components/category-grid";
+import { ProductGrid } from "@/components/product-grid";
+import { fetchCategories, fetchProducts } from "@/lib/api-client";
+
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  let healthStatus = "không kết nối được";
-  let databaseStatus = "unknown";
-
-  try {
-    const health = await fetchHealth();
-    healthStatus = health.status;
-    databaseStatus = health.database;
-  } catch {
-    healthStatus = "offline";
-    databaseStatus = "down";
-  }
+  const [categories, featuredProducts, saleProducts] = await Promise.all([
+    fetchCategories(),
+    fetchProducts({ sort: "bestseller", pageSize: 8 }),
+    fetchProducts({ onSale: true, pageSize: 8 }),
+  ]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
+    <div className="mx-auto max-w-6xl space-y-10 px-4 py-10">
       <section className="rounded-2xl bg-gradient-to-br from-sky-700 to-sky-500 px-6 py-12 text-white shadow-sm">
         <p className="text-sm font-medium uppercase tracking-wide text-sky-100">
           Điện Gia Dụng Pro
@@ -23,26 +21,26 @@ export default async function Home() {
           Đồ gia dụng, điện và điện máy chính hãng, giao nhanh toàn quốc
         </h1>
         <p className="mt-4 max-w-2xl text-base text-sky-50">
-          MVP storefront đang được dựng theo phase. Phase 1 đã có schema Postgres,
-          API health và shell giao diện tiếng Việt.
+          Duyệt danh mục, lọc theo thương hiệu và giá, xem chi tiết sản phẩm trực tiếp từ
+          PostgreSQL qua API NestJS.
         </p>
       </section>
 
-      <section className="mt-8 grid gap-4 md:grid-cols-3">
-        <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-medium text-slate-500">API health</h2>
-          <p className="mt-2 text-2xl font-semibold text-slate-900">{healthStatus}</p>
-        </article>
-        <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-medium text-slate-500">Database</h2>
-          <p className="mt-2 text-2xl font-semibold text-slate-900">{databaseStatus}</p>
-        </article>
-        <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-medium text-slate-500">Phase tiếp theo</h2>
-          <p className="mt-2 text-base text-slate-700">
-            Catalog, search và trang chi tiết sản phẩm trên API NestJS.
-          </p>
-        </article>
+      <section className="space-y-4">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-2xl font-semibold text-slate-900">Danh mục nổi bật</h2>
+        </div>
+        <CategoryGrid categories={categories} />
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold text-slate-900">Sản phẩm bán chạy</h2>
+        <ProductGrid products={featuredProducts.data} />
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold text-slate-900">Khuyến mãi</h2>
+        <ProductGrid products={saleProducts.data} emptyMessage="Chưa có sản phẩm khuyến mãi." />
       </section>
     </div>
   );
