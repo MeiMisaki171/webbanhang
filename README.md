@@ -48,6 +48,20 @@ pnpm db:seed
 pnpm dev
 ```
 
+Hoặc chạy song song ở hai terminal:
+
+```bash
+pnpm dev:api
+pnpm dev:web
+```
+
+Tương đương:
+
+```bash
+pnpm --filter @repo/api dev
+pnpm --filter @repo/web dev
+```
+
 - Web: `http://localhost:3000`
 - API health: `http://localhost:3001/api/v1/health`
 
@@ -55,7 +69,9 @@ pnpm dev
 
 | Script | Mô tả |
 |--------|--------|
-| `pnpm dev` | Chạy web + api song song |
+| `pnpm dev` | Chạy web + api song song (Turbo) |
+| `pnpm dev:api` | Chỉ NestJS API |
+| `pnpm dev:web` | Chỉ Next.js storefront |
 | `pnpm build` | Build toàn monorepo |
 | `pnpm lint` | Lint các package |
 | `pnpm test` | Test các package |
